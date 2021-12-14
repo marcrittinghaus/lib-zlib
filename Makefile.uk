@@ -2,7 +2,6 @@
 #
 #  Authors: Felipe Huici <felipe.huici@neclab.eu>
 #
-#
 #  Copyright (c) 2019, NEC Europe Ltd., NEC Corporation. All rights reserved.
 #
 #  Redistribution and use in source and binary forms, with or without
@@ -40,61 +39,55 @@ $(eval $(call addlib_s,libzlib,$(CONFIG_LIBZLIB)))
 # Original sources
 ################################################################################
 LIBZLIB_VERSION=1.2.11
+LIBZLIB_BASENAME=zlib-$(LIBZLIB_VERSION)
 LIBZLIB_URL=http://www.zlib.net/zlib-$(LIBZLIB_VERSION).tar.gz
-LIBZLIB_DIR=zlib-$(LIBZLIB_VERSION)
-
-$(eval $(call fetch,libzlib,$(LIBZLIB_URL),$(LIBZLIB_VERSION).tar.gz))
+LIBZLIB_PATCHDIR = $(LIBZLIB_BASE)/patches
+$(eval $(call fetch,libzlib,$(LIBZLIB_URL)))
+$(eval $(call patch,libzlib,$(LIBZLIB_PATCHDIR),$(LIBZLIB_BASENAME)))
 
 ################################################################################
 # Helpers`
 ################################################################################
-LIBZLIB_EXTRACTED=$(LIBZLIB_ORIGIN)/$(LIBZLIB_DIR)
+LIBZLIB_SRC=$(LIBZLIB_ORIGIN)/$(LIBZLIB_BASENAME)
 
 ################################################################################
 # Library includes
 ################################################################################
-CINCLUDES-$(CONFIG_LIBZLIB)   += -I$(LIBZLIB_EXTRACTED)
-CXXINCLUDES-$(CONFIG_LIBZLIB) += -I$(LIBZLIB_EXTRACTED)
+CINCLUDES-$(CONFIG_LIBZLIB)   += -I$(LIBZLIB_SRC)
+CXXINCLUDES-$(CONFIG_LIBZLIB) += -I$(LIBZLIB_SRC)
 
 ################################################################################
 # Global flags
 ################################################################################
-LIBZLIB_SUPPRESS_FLAGS += -Wno-unused-parameter   \
-	       	  -Wno-unused-variable            \
-		  -Wno-unused-value               \
-		  -Wno-unused-function            \
-		  -Wno-missing-field-initializers \
-		  -Wno-implicit-fallthrough
+LIBZLIB_SUPPRESS_FLAGS-y += -Wno-unused-parameter
+LIBZLIB_SUPPRESS_FLAGS-y += -Wno-unused-variable
+LIBZLIB_SUPPRESS_FLAGS-y += -Wno-unused-value
+LIBZLIB_SUPPRESS_FLAGS-y += -Wno-unused-function
+LIBZLIB_SUPPRESS_FLAGS-y += -Wno-missing-field-initializers
+LIBZLIB_SUPPRESS_FLAGS-y += -Wno-implicit-fallthrough
 
-LIBZLIB_CFLAGS-y   += $(LIBZLIB_SUPPRESS_FLAGS) \
-		      -Wno-pointer-to-int-cast -Wno-int-to-pointer-cast
-LIBZLIB_CXXFLAGS-y += $(LIBZLIB_SUPPRESS_FLAGS)
+LIBZLIB_CFLAGS-y += $(LIBZLIB_SUPPRESS_FLAGS-y)
+LIBZLIB_CFLAGS-y += -Wno-pointer-to-int-cast
+LIBZLIB_CFLAGS-y += -Wno-int-to-pointer-cast
+
+LIBZLIB_CXXFLAGS-y += $(LIBZLIB_SUPPRESS_FLAGS-y)
 
 ################################################################################
 # Sources
 ################################################################################
-LIBZLIB_SRCS-y += $(LIBZLIB_EXTRACTED)/inflate.c
-LIBZLIB_SRCS-y += $(LIBZLIB_EXTRACTED)/gzclose.c
-LIBZLIB_SRCS-y += $(LIBZLIB_EXTRACTED)/zutil.c
-LIBZLIB_SRCS-y += $(LIBZLIB_EXTRACTED)/crc32.c
-LIBZLIB_SRCS-y += $(LIBZLIB_EXTRACTED)/uncompr.c
-LIBZLIB_SRCS-y += $(LIBZLIB_EXTRACTED)/gzread.c
-LIBZLIB_SRCS-y += $(LIBZLIB_EXTRACTED)/trees.c
-LIBZLIB_SRCS-y += $(LIBZLIB_EXTRACTED)/gzlib.c
-LIBZLIB_SRCS-y += $(LIBZLIB_EXTRACTED)/infback.c
-LIBZLIB_SRCS-y += $(LIBZLIB_EXTRACTED)/gzwrite.c
-LIBZLIB_SRCS-y += $(LIBZLIB_EXTRACTED)/compress.c
-LIBZLIB_SRCS-y += $(LIBZLIB_EXTRACTED)/inftrees.c
-LIBZLIB_SRCS-y += $(LIBZLIB_EXTRACTED)/deflate.c
-LIBZLIB_SRCS-y += $(LIBZLIB_EXTRACTED)/adler32.c
-LIBZLIB_SRCS-y += $(LIBZLIB_EXTRACTED)/inffast.c
+LIBZLIB_SRCS-y += $(LIBZLIB_SRC)/adler32.c
+LIBZLIB_SRCS-y += $(LIBZLIB_SRC)/crc32.c
+LIBZLIB_SRCS-y += $(LIBZLIB_SRC)/deflate.c
+LIBZLIB_SRCS-y += $(LIBZLIB_SRC)/infback.c
+LIBZLIB_SRCS-y += $(LIBZLIB_SRC)/inffast.c
+LIBZLIB_SRCS-y += $(LIBZLIB_SRC)/inflate.c
+LIBZLIB_SRCS-y += $(LIBZLIB_SRC)/inftrees.c
+LIBZLIB_SRCS-y += $(LIBZLIB_SRC)/trees.c
+LIBZLIB_SRCS-y += $(LIBZLIB_SRC)/zutil.c
+LIBZLIB_SRCS-y += $(LIBZLIB_SRC)/compress.c
+LIBZLIB_SRCS-y += $(LIBZLIB_SRC)/uncompr.c
 
-################################################################################
-# Zlib prepare
-################################################################################
-# Run ./configure
-$(LIBZLIB_BUILD)/.configured: $(LIBZLIB_BUILD)/.origin
-	$(call verbose_cmd,CONFIG,libzlib: $(notdir $@), \
-	cd $(LIBZLIB_EXTRACTED) && ./configure && touch $@)
-
-UK_PREPARE += $(LIBZLIB_BUILD)/.configured
+LIBZLIB_SRCS-$(CONFIG_LIBZLIB_GZIP) += $(LIBZLIB_SRC)/gzclose.c
+LIBZLIB_SRCS-$(CONFIG_LIBZLIB_GZIP) += $(LIBZLIB_SRC)/gzlib.c
+LIBZLIB_SRCS-$(CONFIG_LIBZLIB_GZIP) += $(LIBZLIB_SRC)/gzread.c
+LIBZLIB_SRCS-$(CONFIG_LIBZLIB_GZIP) += $(LIBZLIB_SRC)/gzwrite.c
